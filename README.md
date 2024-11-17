@@ -7,6 +7,10 @@ This project aims to develop a Python application that allows users to submit th
 
 A Python application built using Streamlit and Generative AI to review Python code, identify bugs, suggest fixes, and improve performance. This tool provides an interactive code review experience with automatic bug reports and optimized code snippets.
 
+![image](https://github.com/user-attachments/assets/78f59f11-6fca-4cc0-84bd-144f77258f04)
+
+![image](https://github.com/user-attachments/assets/1cbd143f-18cb-41ad-abc1-545741c8e11f)
+
 ## Features
 - **Bug Report**: Automatically detects issues in Python code.
 - **Fixed Code Snippets**: Provides suggestions and corrected code.

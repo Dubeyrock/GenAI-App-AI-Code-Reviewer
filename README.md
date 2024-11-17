@@ -1,9 +1,8 @@
-# GenAI-App AI Code-Reviewer
+# AI Code Reviewer
 
 Objective 
 This project aims to develop a Python application that allows users to submit their Python code for review and receive feedback on potential bugs along with suggestions for fixes. The application should be user-friendly, and efficient, and provide accurate bug reports and fixed code snippets.
 
-# AI Code Reviewer
 
 A Python application built using Streamlit and Generative AI to review Python code, identify bugs, suggest fixes, and improve performance. This tool provides an interactive code review experience with automatic bug reports and optimized code snippets.
 

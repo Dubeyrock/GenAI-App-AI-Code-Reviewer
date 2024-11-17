@@ -20,3 +20,22 @@ A Python application built using Streamlit and Generative AI to review Python co
 - **Google Generative AI**: For analyzing code and generating reviews.
 - **autopep8**: For automatic Python code formatting.
 - **pytest**: To create test cases for the application.
+  
+## How to Use
+
+1. **Upload Code File**: Click on "Upload Python Code File" and select your `.py` file, or simply paste your code into the text area.
+2. **Generate Review**: Click on the "Generate Review" button to analyze the code.
+3. **Review Results**: The review will display:
+   - **Bug Report**: A summary of issues found in the code.
+   - **Fixed Code Snippet**: Suggested code fixes.
+   - **Explanation & Suggestions**: Additional improvements and explanations for the code.
+
+## Example Code
+
+Here’s an example of Python code that will be reviewed by the AI Code Reviewer:
+
+```python
+def greet(name):
+    print("Hello, " + name)
+
+greet("Alice")

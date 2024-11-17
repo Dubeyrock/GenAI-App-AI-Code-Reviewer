@@ -9,7 +9,7 @@ A Python application built using Streamlit and Generative AI to review Python co
 
 ![image](https://github.com/user-attachments/assets/78f59f11-6fca-4cc0-84bd-144f77258f04)
 
-![image](https://github.com/user-attachments/assets/1cbd143f-18cb-41ad-abc1-545741c8e11f)
+
 
 ## Features
 - **Bug Report**: Automatically detects issues in Python code.

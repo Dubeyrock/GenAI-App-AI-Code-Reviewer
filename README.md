@@ -43,3 +43,8 @@ def greet(name):
     print("Hello, " + name)
 
 greet("Alice")
+
+``````````
+## demo 
+![Screenshot (1492)](https://github.com/user-attachments/assets/50c99a2c-17ca-4a96-8219-78342ec1d0b9)
+

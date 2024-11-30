@@ -3,7 +3,7 @@ import google.generativeai as genai
 import time
 
 # Configure API
-genai.configure(api_key="AIzaSyAPPjQz0sJ800CX6hFdllcRxNUaldL4HIQ")
+genai.configure(api_key="AIzaSyAPPjQz0sJ800CX6hFdllcRxNUaldL4HIQ") ## enter your   API key
 
 # Set system prompt for model
 sys_prompt = '''You are a friendly and helpful code review assistant. You analyze Python code and provide:

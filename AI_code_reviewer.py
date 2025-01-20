@@ -1,148 +1,92 @@
-# Load environment variables
-from dotenv import load_dotenv
-load_dotenv()
-
-# Importing necessary libraries
-import os
 import streamlit as st
-import google.generativeai as genai 
-from streamlit_ace import st_ace  
+import google.generativeai as genai
+import time
 
-# Configure GenAI API keys
-genai.configure(api_key=os.getenv("GOOGLE_API_KEY"))
+# Configure API
+genai.configure(api_key="AIzaSyAPPjQz0sJ800CX6hFdllcRxNUaldL4HIQ") ## enter your   API key
 
-# Initialize the model
-model = genai.GenerativeModel("gemini-1.5-flash")
+# Set system prompt for model
+sys_prompt = '''You are a friendly and helpful code review assistant. You analyze Python code and provide:
+                1. Bug Report
+                2. Fixed Code Snippet
+                3. Explanation & Suggestions
+You are also able to answer code-related questions in a conversational, friendly manner.'''
 
-# System prompt
-sys_prompt = """
-You are an expert AI code reviewer integrated into a user-friendly Python application. Your role is to analyze Python code submitted by users and provide the following:
+# Initialize model
+model = genai.GenerativeModel("models/gemini-1.5-flash", system_instruction=sys_prompt)
 
-1. ## Bug Report: 
-    - Identify potential bugs, syntax errors, and logical flaws in the code.
-    - Explain the causes of any errors or bugs clearly.
-    - Highlight common issues such as incorrect indentation, missing imports, variable shadowing, etc.
-    - If possible, offer explanations of why certain patterns or practices are more reliable.
+# UI Design
+st.header(":blue[AI] Code Reviewer 🧑‍💻💬", divider=True)
 
-2. ## Fixed Code:
-    - Return fixed or optimized code snippets alongside explanations of the changes made.
-    - Suggest alternative approaches for optimizing code and improving performance (e.g., time complexity reduction, better use of built-in functions, etc.).
-    - Ensure that the fixed code adheres to Pythonic principles (e.g., list comprehensions, idiomatic error handling, etc.).
+# File Upload Option
+uploaded_file = st.file_uploader("📁 Upload Python Code File", type=["py"])
+if uploaded_file is not None:
+    ex_code = uploaded_file.read().decode("utf-8")
+else:
+    ex_code = st.text_area(" 💻 Enter Python Code:", placeholder="Paste your code here...")
 
-3. ## User Guidance:
-    - Provide concise, easy-to-understand feedback suitable for developers of varying experience levels.
-    - Highlight best practices such as code readability, modularization, and reusability.
-    - Offer suggestions on improving code structure, comments, and documentation for better maintainability.
-    - Whenever applicable, provide links to relevant documentation or resources to help the user deepen their understanding.
+# Submit button for code review
+if st.button(" 🔍 Generate Review"):
+    st.divider()
+    if ex_code:
+        with st.spinner("Reviewing your code... Please wait!"):
+            time.sleep(1)  # Simulate processing time
+            response = model.generate_content(ex_code)
 
-Maintain a professional tone while keeping explanations simple and accessible. Focus on clarity, accuracy, efficiency, and improving the user's understanding of best coding practices. Strive to explain why certain fixes are made and how they enhance the overall functionality and efficiency of the code.
-"""
+            # Display Code Review Results
+            st.header("🕒💬 Code Review Results:")
 
-# Function to get response from GenAI
-def get_response(sys_prompt, code):
-    response = model.generate_content([sys_prompt, code])
-    return response.text
+            # Bug Report
+            with st.expander("Bug Report"):
+                bug_report = response.text.split('Fixed Code Snippet:')[0]
+                st.markdown(f"** 🐞 Bug Report:**\n{bug_report}")
 
-# Sidebar for navigation
-st.sidebar.title("Navigation")
-selected_option = st.sidebar.radio("Go to", ["Code Review", "About the Project"])
+            # Fixed Code Snippet
+            with st.expander("🔧 Fixed Code Snippet"):
+                fixed_code = response.text.split('Fixed Code Snippet:')[1].split('Explanation and Suggestions:')[0]
+                st.code(fixed_code, language='python')
 
-# Main content based on selected option in sidebar navigation 
-if selected_option == "Code Review":
-    # Title of the web app
-    st.title(":page_facing_up: An AI Code Reviewer")
+            # Suggestions and Explanation
+            with st.expander("💡 Suggestions & Explanation"):
+                if 'Explanation and Suggestions:' in response.text:
+                    suggestions = response.text.split('Explanation and Suggestions:')[1]
+                else:
+                    suggestions = "No suggestions or explanations available."
+                st.markdown(f"**Suggestions:**\n{suggestions}")
 
-    # Subheader for code review
-    st.markdown("""
-        <style>
-            .ace_editor {
-                background-color: #002b36;  /* Dark blue background */
-                color: #ffffff;  /* White text color */
-            }
-        </style>
-    """, unsafe_allow_html=True)
+# Query Box for User (Chatbot-like behavior)
+st.divider()
+st.subheader("❓ Ask a Query to the Chatbot:")
 
-    # Ace editor for code input
-    code = st_ace(
-        height=400,
-        language='python',
-        theme='twilight',  # Or any other theme you prefer
-        placeholder='Enter your Python code here...',
-        font_size=14,
-        key='ace_editor',
-        auto_update=True
-    )
+# Initialize chat history in session state if not already
+if 'chat_history' not in st.session_state:
+    st.session_state.chat_history = []
 
+# Display previous chat history (if any)
+for message in st.session_state.chat_history:
+    st.markdown(f"**{message['role']}:** {message['text']}")
 
-    # Generate button
-    button = st.button("Review Code")
+# Query input box for user to ask a question
+user_query = st.text_area("💬 Type your question here:", placeholder="Ask a question about your code...")
 
-    if button:
-        if not code.strip():
-            st.error("Please enter some Python code to review.")
-        else:
-            with st.spinner("Analyzing your code..."):
-                try:
-                    response = get_response(sys_prompt, code)
-                    st.header("Code Review")
-                    st.markdown(response)
-                except Exception as e:
-                    st.error(f"An error occurred: {e}")
+# Handle user query submission
+if st.button("Submit Query"):
+    if user_query:
+        # Add user query to chat history
+        st.session_state.chat_history.append({"role": "User", "text": user_query})
 
-elif selected_option == "About the Project":
-    # Title of the About section
-    st.title("🌟 **About the Project**")
+        with st.spinner("Generating chatbot response..."):
+            time.sleep(1)  # Simulate processing time
+            
+            # Get chatbot response
+            query_response = model.generate_content(user_query)
+            
+            # Add chatbot response to chat history
+            st.session_state.chat_history.append({"role": "Bot", "text": query_response.text})
 
-    # Project Overview
-    st.markdown("---")
-    st.subheader("🌟 Project Overview")
-    st.markdown("""
-    Welcome to the **AI-Powered Code Reviewer**!  
-    This project is designed to simplify coding workflows by identifying bugs, optimizing code, 
-    and guiding developers toward best practices with the power of **AI**.
-    """)
+            # Display the response
+            st.markdown(f"**Bot says:**\n{query_response.text}")
 
-    # Objective
-    st.markdown("---")
-    st.subheader("🎯 Objective")
-    st.markdown("""
-    The **AI Code Reviewer** leverages cutting-edge AI technology to help developers:  
-    - 🤖 Identify potential bugs and errors in their Python code.  
-    - 🛠️ Provide optimized solutions to improve code efficiency.  
-    - 📚 Offer clear, accessible guidance for developers at all skill levels.
-    """)
-
-    # Features
-    st.markdown("---")
-    st.subheader("✨ Features")
-    st.markdown("""
-    - 🔍 **Bug Identification**: Detect syntax errors, logical flaws, and inefficiencies.  
-    - 🔧 **Code Optimization**: Suggest fixes and improvements with detailed explanations.  
-    - 🧑‍🏫 **Developer Assistance**: Deliver clear, actionable guidance for better coding.  
-    - 🎨 **Interactive UI**: Built with **Streamlit** for a sleek, user-friendly experience.
-    """)
-
-    # Technologies Used
-    st.markdown("---")
-    st.subheader("🛠️ Technologies Used")
-    st.markdown("""
-    - 🐍 **Python**: Core programming language for implementation.  
-    - 🌐 **Streamlit**: Framework for interactive web apps.  
-    - 🤖 **Google Generative AI**: Advanced AI for code review.  
-    - 🔒 **dotenv**: Ensures secure API key management.
-    """)
-
-    # Future Scope
-    st.markdown("---")
-    st.subheader("🚀 Future Scope")
-    st.markdown("""
-    - 🌎 **Support for Multiple Programming Languages**: Extend beyond Python for broader use.  
-    - 📊 **Advanced Debugging Tools**: Add features like complexity analysis and performance insights.  
-    - 🎨 **Enhanced UI Customization**: Improve user experience with better aesthetics and theming.
-    """)
-
-    # Closing Note
-    st.markdown("---")
-    st.markdown("""
-    > ### **🎉 Thank you for exploring our project! Your feedback and support mean the world to me.** ✨  
-    """)
+# Footer with credit
+st.markdown("---")
+st.caption("Built with ❤️ by **Shivam Dubey** | Powered by Generative AI | Built using Streamlit")

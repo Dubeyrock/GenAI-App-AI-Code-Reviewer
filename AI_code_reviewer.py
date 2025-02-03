@@ -4,7 +4,7 @@ import time
 from google.api_core import retry
 
 # Configure API
-genai.configure(api_key="AIzaSyAPPjQz0sJ800CX6hFdllcRxNUaldL4HIQ")  # Enter your API key
+genai.configure(api_key="AIzaSyBtrNACWbfKF5hKZsczZ9UQlUjNawJNk8Y")  # Enter your API key
 
 # Set system prompt for model
 sys_prompt = '''You are a friendly and helpful code review assistant. You analyze Python code and provide:

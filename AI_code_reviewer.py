@@ -1,9 +1,10 @@
 import streamlit as st
 import google.generativeai as genai
 import time
+from google.api_core import retry
 
 # Configure API
-genai.configure(api_key="AIzaSyAPPjQz0sJ800CX6hFdllcRxNUaldL4HIQ") ## enter your   API key
+genai.configure(api_key="AIzaSyAPPjQz0sJ800CX6hFdllcRxNUaldL4HIQ")  # Enter your API key
 
 # Set system prompt for model
 sys_prompt = '''You are a friendly and helpful code review assistant. You analyze Python code and provide:
@@ -31,28 +32,37 @@ if st.button(" 🔍 Generate Review"):
     if ex_code:
         with st.spinner("Reviewing your code... Please wait!"):
             time.sleep(1)  # Simulate processing time
-            response = model.generate_content(ex_code)
+            try:
+                # Retry with exponential backoff
+                @retry.Retry()
+                def generate_content_with_retry():
+                    return model.generate_content(ex_code)
+                
+                response = generate_content_with_retry()
 
-            # Display Code Review Results
-            st.header("🕒💬 Code Review Results:")
+                # Display Code Review Results
+                st.header("🕒💬 Code Review Results:")
 
-            # Bug Report
-            with st.expander("Bug Report"):
-                bug_report = response.text.split('Fixed Code Snippet:')[0]
-                st.markdown(f"** 🐞 Bug Report:**\n{bug_report}")
+                # Bug Report
+                with st.expander("Bug Report"):
+                    bug_report = response.text.split('Fixed Code Snippet:')[0]
+                    st.markdown(f"** 🐞 Bug Report:**\n{bug_report}")
 
-            # Fixed Code Snippet
-            with st.expander("🔧 Fixed Code Snippet"):
-                fixed_code = response.text.split('Fixed Code Snippet:')[1].split('Explanation and Suggestions:')[0]
-                st.code(fixed_code, language='python')
+                # Fixed Code Snippet
+                with st.expander("🔧 Fixed Code Snippet"):
+                    fixed_code = response.text.split('Fixed Code Snippet:')[1].split('Explanation and Suggestions:')[0]
+                    st.code(fixed_code, language='python')
 
-            # Suggestions and Explanation
-            with st.expander("💡 Suggestions & Explanation"):
-                if 'Explanation and Suggestions:' in response.text:
-                    suggestions = response.text.split('Explanation and Suggestions:')[1]
-                else:
-                    suggestions = "No suggestions or explanations available."
-                st.markdown(f"**Suggestions:**\n{suggestions}")
+                # Suggestions and Explanation
+                with st.expander("💡 Suggestions & Explanation"):
+                    if 'Explanation and Suggestions:' in response.text:
+                        suggestions = response.text.split('Explanation and Suggestions:')[1]
+                    else:
+                        suggestions = "No suggestions or explanations available."
+                    st.markdown(f"**Suggestions:**\n{suggestions}")
+
+            except Exception as e:
+                st.error(f"An error occurred: {e}")
 
 # Query Box for User (Chatbot-like behavior)
 st.divider()
@@ -78,14 +88,23 @@ if st.button("Submit Query"):
         with st.spinner("Generating chatbot response..."):
             time.sleep(1)  # Simulate processing time
             
-            # Get chatbot response
-            query_response = model.generate_content(user_query)
-            
-            # Add chatbot response to chat history
-            st.session_state.chat_history.append({"role": "Bot", "text": query_response.text})
+            try:
+                # Retry with exponential backoff
+                @retry.Retry()
+                def generate_content_with_retry():
+                    return model.generate_content(user_query)
+                
+                # Get chatbot response
+                query_response = generate_content_with_retry()
+                
+                # Add chatbot response to chat history
+                st.session_state.chat_history.append({"role": "Bot", "text": query_response.text})
 
-            # Display the response
-            st.markdown(f"**Bot says:**\n{query_response.text}")
+                # Display the response
+                st.markdown(f"**Bot says:**\n{query_response.text}")
+
+            except Exception as e:
+                st.error(f"An error occurred: {e}")
 
 # Footer with credit
 st.markdown("---")
